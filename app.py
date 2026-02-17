@@ -14,17 +14,21 @@ def favicon():
 
 async def load_tokens(server_name):
     try:
-        base_url = os.getenv("TOKEN_BASE_URL")
-        if not base_url:
-            raise ValueError("TOKEN_BASE_URL environment variable is not set.")
-        if server_name == "PK":
-            path = "PK/token_PK.json"
-        elif server_name in {"BR", "US", "SAC", "NA"}:
-            path = "BR/token_BR.json"
-        else:
-            path = "BD/token_BD.json"
+        base_url = "https://raw.githubusercontent.com/TSun-FreeFire/TSun-FreeFire-Storage/main/Spam-api/"
+        
+        server_map = {
+            "BD": "token_bd.json",
+            "IND": "token_ind.json",
+            "ME": "token_me.json",
+            "NA": "token_na.json",
+            "PK": "token_pk.json",
+            "BR": "token_br.json",
+            "US": "token_na.json",
+            "SAC": "token_br.json",
+        }
 
-        url = base_url + path
+        file_name = server_map.get(server_name, "token_bd.json")
+        url = base_url + file_name
         
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as resp:
@@ -67,7 +71,7 @@ def parse_protobuf_response(response_data):
 
 async def visit(session, url, token, uid, data):
     headers = {
-        "ReleaseVersion": "OB51",
+        "ReleaseVersion": "OB52",
         "X-GA": "v1 1",
         "Authorization": f"Bearer {token}",
         "Host": url.replace("https://", "").split("/")[0]

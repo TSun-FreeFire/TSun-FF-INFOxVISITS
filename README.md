@@ -1,10 +1,10 @@
 <!-- Header Banner -->
 <p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:2E3192,100:1BFFFF&height=200&section=header&text=TSun%20FF%20Visits&fontSize=45&fontColor=fff&animation=fadeIn&fontAlignY=35"/>
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:2E3192,100:1BFFFF&height=200&section=header&text=TSun%20FF%20INFOxVISITS&fontSize=45&fontColor=fff&animation=fadeIn&fontAlignY=35"/>
 </p>
 
 <p align="center">
-  <b>⚡ Flask-Based API for Sending Visits to Free Fire Profiles ⚡</b><br>
+  <b>⚡ Flask-Based API for Uid Info And Sending Visits to Free Fire Profiles ⚡</b><br>
   <i>Async • Token-Managed • Protobuf Powered</i>
 </p>
 
@@ -12,15 +12,15 @@
 <div align="center">
 
 ## 📊 Badges & Stats
-  <img src="https://img.shields.io/github/stars/TSun-FreeFire/TSun-FreeFire-Visits?color=yellow&style=for-the-badge"/>
-  <img src="https://img.shields.io/github/forks/TSun-FreeFire/TSun-FreeFire-Visits?color=brightgreen&style=for-the-badge"/>
-  <img src="https://img.shields.io/github/issues/TSun-FreeFire/TSun-FreeFire-Visits?color=orange&style=for-the-badge"/>
-  <img src="https://img.shields.io/github/license/TSun-FreeFire/TSun-FreeFire-Visits?color=blue&style=for-the-badge"/>
+  <img src="https://img.shields.io/github/stars/TSun-FreeFire/TSun-FF-INFOxVISITS?color=yellow&style=for-the-badge"/>
+  <img src="https://img.shields.io/github/forks/TSun-FreeFire/TSun-FF-INFOxVISITS?color=brightgreen&style=for-the-badge"/>
+  <img src="https://img.shields.io/github/issues/TSun-FreeFire/TSun-FF-INFOxVISITS?color=orange&style=for-the-badge"/>
+  <img src="https://img.shields.io/github/license/TSun-FreeFire/TSun-FF-INFOxVISITS?color=blue&style=for-the-badge"/>
 </div>
 
 <div align="center">
 
-  <img src="https://github-readme-stats.vercel.app/api/pin/?username=TSun-FreeFire&repo=TSun-FreeFire-Visits&theme=tokyonight&hide_border=true"/>
+  <img src="https://github-readme-stats.vercel.app/api/pin/?username=TSun-FreeFire&repo=TSun-FF-INFOxVISITS&theme=tokyonight&hide_border=true"/>
 </div>
 
 ---
@@ -54,20 +54,10 @@
 </div>
 
 ```bash
-git clone https://github.com/TSun-FreeFire/TSun-FreeFire-Visits.git
-cd TSun-FreeFire-Visits
+git clone https://github.com/TSun-FreeFire/TSun-FF-INFOxVISITS.git
+cd TSun-FF-INFOxVISITS
 pip install -r requirements.txt
-````
-
-### 🌍 Environment Variable
-
-Set the URL for your token JSONs:
-
-```bash
-TOKEN_BASE_URL="https://raw.githubusercontent.com/TSun-FreeFire/TSun-FF-Visits/refs/heads/main/token_bd.json"
 ```
-
-*(Replace with your own token File. it's Only For Example.)*
 
 ---
 
@@ -84,7 +74,8 @@ python app.py
 ### Example Request:
 
 ```bash
-http://localhost:5000/BD/123456789
+http://localhost:5000/info/bd/123456789
+http://localhost:5000/visit/bd/123456789
 ```
 
 #### Example Response:
@@ -144,7 +135,7 @@ Contributions are always welcome!
 3. Commit changes
 4. Open a Pull Request
 
-> Have ideas or issues? [Open one here](https://github.com/TSun-FreeFire/TSun-FreeFire-Visits/issues)
+> Have ideas or issues? [Open one here](https://github.com/TSun-FreeFire/TSun-FF-INFOxVISITS/issues)
 
 ---
 

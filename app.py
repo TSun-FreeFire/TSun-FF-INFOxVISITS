@@ -3,7 +3,7 @@ import json
 import logging
 import sys
 from datetime import datetime, timezone, timedelta
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 
 import aiohttp
 from byte import encrypt_api, Encrypt_ID
@@ -17,6 +17,10 @@ except ImportError:
     sys.exit(1)
 
 app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

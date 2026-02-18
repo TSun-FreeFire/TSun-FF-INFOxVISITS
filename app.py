@@ -70,7 +70,7 @@ def get_url(server_name):
     if server_name == "PK":
         return "https://clientbp.ggblueshark.com/GetPlayerPersonalShow"
     elif server_name == "IND":
-        return "https://loginbp.common.ggbluefox.com/GetPlayerPersonalShow"
+        return "https://client.ind.freefiremobile.com/GetPlayerPersonalShow"
     elif server_name in {"BR", "US", "SAC", "NA"}:
         return "https://client.us.freefiremobile.com/GetPlayerPersonalShow"
     else:
@@ -218,8 +218,8 @@ async def fetch_player_data(uid, server):
         
     data_bytes = bytes.fromhex(encrypted)
     
-    # Try first 5 tokens
-    max_attempts = 5
+    # Try first 3 tokens
+    max_attempts = 3
     tokens_to_try = tokens[:max_attempts]
     
     for i, token in enumerate(tokens_to_try):
@@ -277,18 +277,21 @@ def process_data_with_schema(binary_data, region):
         def str_safe(val):
             return str(val) if val is not None else None
 
+        # Get actual region from response data, fallback to parameter if not available
+        actual_region = basic_info.get("region") if basic_info.get("region") else region
+
         result = {
             "AccountInfo": {
                 "AccountName": basic_info.get("nickname"),
                 "AccountLevel": basic_info.get("level"),
                 "AccountEXP": basic_info.get("exp"),
-                "AccountRegion": region,
+                "AccountRegion": actual_region,
                 "AccountLikes": basic_info.get("liked"),
                 "AccountLastLogin": format_timestamp_with_timezone(
-                    basic_info.get("lastLoginAt"), region
+                    basic_info.get("lastLoginAt"), actual_region
                 ),
                 "AccountCreateTime": format_timestamp_with_timezone(
-                    basic_info.get("createAt"), region
+                    basic_info.get("createAt"), actual_region
                 ),
                 "AccountSeasonId": basic_info.get("seasonId"),
             },
@@ -310,8 +313,8 @@ def process_data_with_schema(binary_data, region):
                 "EquippedWeapon": basic_info.get("weaponSkinShows", []),
                 "EquippedSkills": profile_info.get("equipedSkills", [])
             },
-            "SocialInfo": format_timestamps_in_dict(social_info, region),
-            "PetInfo": format_timestamps_in_dict(pet_info, region),
+            "SocialInfo": format_timestamps_in_dict(social_info, actual_region),
+            "PetInfo": format_timestamps_in_dict(pet_info, actual_region),
             "AccountType": basic_info.get("accountType"),
             "ReleaseVersion": basic_info.get("releaseVersion"),
             "CreditScoreInfo": credit_score_info,
@@ -323,13 +326,34 @@ def process_data_with_schema(binary_data, region):
                 "GuildName": clan_info.get("clanName"),
                 "GuildOwner": str_safe(clan_info.get("captainId"))
             },
-            "GuildOwnerInfo": format_timestamps_in_dict(captain_info, region)
+            "GuildOwnerInfo": format_timestamps_in_dict(captain_info, actual_region)
         }
         return result
 
     except Exception as e:
         logger.error(f"Failed to decode Protobuf with schema: {str(e)}")
         return None
+
+@app.route('/info/<string:uid>', methods=['GET'])
+def get_player_info_auto(uid):
+    """Auto-detect region by trying all available servers"""
+    print(f"Fetching info for UID: {uid} (auto-detecting region)...")
+    
+    # List of unique servers to try (avoiding duplicates like US->NA, SAC->BR)
+    servers_to_try = ["BD", "IND", "ME", "NA", "PK", "BR", "US", "SAC"]
+    
+    for server in servers_to_try:
+        print(f"Trying server: {server}...")
+        binary_data = asyncio.run(fetch_player_data(uid, server))
+        
+        if binary_data:
+            print(f"Fetch successful on server: {server}. Processing with Schema...")
+            result = process_data_with_schema(binary_data, server)
+            if result:
+                return jsonify(result), 200
+    
+    # If all servers failed
+    return jsonify({"error": "Invalid UID. Could not find player on any server."}), 404
 
 @app.route('/info/<string:server>/<string:uid>', methods=['GET'])
 def get_player_info(server, uid):

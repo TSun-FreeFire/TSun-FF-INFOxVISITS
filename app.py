@@ -201,9 +201,10 @@ def format_timestamps_in_dict(data_dict, region):
              new_dict[k] = v
     return new_dict
 
-async def fetch_player_data(uid, server):
+async def fetch_player_data(uid, server, tokens=None):
     url = get_url(server)
-    tokens = await load_tokens(server)
+    if not tokens:
+        tokens = await load_tokens(server)
     if not tokens:
         logger.error(f"No tokens found for server {server}")
         return None
@@ -394,6 +395,24 @@ def send_visits_endpoint(server, uid):
     token_count = len(tokens)
     projected_success = token_count * 5
     
+    # Fetch player info BEFORE starting visits to provide better UX
+    # Default values in case fetch fails
+    real_nickname = "Processing..."
+    real_level = 0
+    real_likes = 0
+    
+    try:
+        # Use the tokens we already loaded
+        binary_data = asyncio.run(fetch_player_data(uid, server, tokens=tokens))
+        if binary_data:
+            player_info = parse_basic_protobuf_response(binary_data)
+            if player_info:
+                real_nickname = player_info.get("nickname", "Processing...")
+                real_level = player_info.get("level", 0)
+                real_likes = player_info.get("likes", 0)
+    except Exception as e:
+        logger.error(f"Failed to pre-fetch player info for {uid}: {e}")
+
     print(f"🚀 Triggering 5x visits for UID: {uid}. Tokens: {token_count}. Projected Outcome: {projected_success}")
 
     # Helper function to run the background task in a new event loop
@@ -410,12 +429,12 @@ def send_visits_endpoint(server, uid):
     thread.daemon = True # Ensure thread dies if main app dies
     thread.start()
 
-    # Return IMMEDIATE response with 5x projection
+    # Return IMMEDIATE response with 5x projection AND real info
     response = {
         "fail": 0, # Assuming all go well for the projection
-        "level": 0, # We don't have this yet as we are returning immediately
-        "likes": 0, # We don't have this yet
-        "nickname": "Processing in Background...", 
+        "level": real_level,
+        "likes": real_likes, 
+        "nickname": real_nickname,
         "region": server,
         "success": projected_success,
         "uid": uid,

@@ -4,351 +4,940 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSun × Kittens Free Fire API Documentation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>TSun × Kittens — Free Fire API</title>
+
+    <!-- Hand-drawn fonts: Caveat (headlines), Patrick Hand (body), JetBrains Mono (code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Architects+Daughter&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
     <style>
+        /* ================================================================
+           SVG FILTERS — hidden, referenced by CSS filter: url(#...)
+           Rough: high turbulence for sketchy, jittery edges
+           Smooth: low turbulence for soft, blended chalk edges
+           ================================================================ */
+
+        /* ================================================================
+           DESIGN TOKEN SYSTEM
+           Hand-Drawn / Pencil & Chalk Theme
+           ================================================================ */
         :root {
-            --primary: #FF4D4D;
-            --secondary: #1A1A1A;
-            --background: #0f0f0f;
-            --surface: #1E1E1E;
-            --text-main: #FFFFFF;
-            --text-muted: #A0A0A0;
-            --success: #00E676;
-            --error: #FF3D00;
+            /* — Paper & Canvas — */
+            --paper: #F5F0E6;
+            --paper-warm: #EDE7D9;
+            --paper-lines: rgba(160, 148, 128, 0.10);
+
+            /* — Pencil Grayscale Tones — */
+            --pencil-faint: #C8C0B4;
+            --pencil-light: #A89F93;
+            --pencil-medium: #7A7269;
+            --pencil-dark: #4A4540;
+            --pencil-deep: #2D2A26;
+
+            /* — Chalk Pastel Tones — */
+            --chalk-pink: #E8B4B8;
+            --chalk-blue: #A8C5DA;
+            --chalk-yellow: #E8DFB0;
+            --chalk-green: #A8D5B8;
+            --chalk-lavender: #C4B0D8;
+            --chalk-orange: #E0C4A0;
+            --chalk-white: #F0EBE0;
+
+            /* — Semantic Colors — */
+            --ink: var(--pencil-deep);
+            --ink-secondary: var(--pencil-medium);
+            --ink-faint: var(--pencil-light);
+            --accent: var(--chalk-blue);
+            --accent-warm: var(--chalk-orange);
+            --error: #B85C5C;
+            --success: #5C8A6A;
+
+            /* — Typography — */
+            --font-hand-display: 'Caveat', cursive;
+            --font-hand-body: 'Patrick Hand', 'Architects Daughter', cursive;
+            --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+            /* — Spacing (8px grid) — */
+            --sp-1: 8px;
+            --sp-2: 16px;
+            --sp-3: 24px;
+            --sp-4: 32px;
+            --sp-5: 40px;
+            --sp-6: 48px;
+            --sp-8: 64px;
+
+            /* — Borders (hand-drawn feel) — */
+            --border-sketch: 2px solid var(--pencil-medium);
+            --border-faint: 1.5px solid var(--pencil-faint);
+            --radius-organic-1: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            --radius-organic-2: 15px 255px 15px 225px / 225px 15px 255px 15px;
+            --radius-organic-3: 225px 15px 255px 15px / 15px 255px 15px 225px;
+            --radius-soft: 12px 8px 10px 14px;
+
+            /* — Motion — */
+            --transition: 180ms ease-out;
         }
 
-        * {
+        /* ================================================================
+           RESET & BASE
+           ================================================================ */
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Outfit', sans-serif;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            background-color: var(--background);
-            color: var(--text-main);
+            background-color: var(--paper);
+            color: var(--ink);
+            font-family: var(--font-hand-body);
+            font-weight: 400;
+            line-height: 1.7;
+            min-height: 100vh;
+            /* Subtle paper grain texture via repeating radial gradient */
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(160,148,128,0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(160,148,128,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0,0,0,0.01) 0%, transparent 100%);
+        }
+
+        /* Ruled notebook lines (subtle) */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 31px,
+                var(--paper-lines) 31px,
+                var(--paper-lines) 32px
+            );
+            opacity: 0.5;
+        }
+
+        /* ================================================================
+           TYPOGRAPHY
+           ================================================================ */
+        .heading-display {
+            font-family: var(--font-hand-display);
+            font-weight: 700;
+            font-size: 3.5rem;
+            line-height: 1.15;
+            color: var(--ink);
+            letter-spacing: 0.01em;
+        }
+
+        .heading-section {
+            font-family: var(--font-hand-display);
+            font-weight: 600;
+            font-size: 1.75rem;
+            line-height: 1.3;
+            color: var(--ink);
+        }
+
+        .text-body {
+            font-family: var(--font-hand-body);
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: var(--ink-secondary);
+        }
+
+        .text-label {
+            font-family: var(--font-hand-body);
+            font-weight: 400;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+            color: var(--ink-faint);
+            letter-spacing: 0.04em;
+        }
+
+        .text-mono {
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
             line-height: 1.6;
         }
 
-        header {
-            background: rgba(30, 30, 30, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 2rem 5%;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        /* ================================================================
+           LAYOUT
+           ================================================================ */
+        .page-container {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: var(--sp-8) var(--sp-3);
+        }
+
+        /* ================================================================
+           HEADER — hand-drawn underline
+           ================================================================ */
+        .site-header {
             position: sticky;
             top: 0;
             z-index: 100;
+            background-color: var(--paper);
+            padding: var(--sp-2) var(--sp-4);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .logo {
-            font-size: 1.5rem;
+        /* Hand-drawn underline for header */
+        .site-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: var(--sp-4);
+            right: var(--sp-4);
+            height: 2px;
+            background: var(--pencil-faint);
+            /* Wavy line simulation */
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='4' viewBox='0 0 200 4'%3E%3Cpath d='M0 2 Q 10 0, 20 2 T 40 2 T 60 2 T 80 2 T 100 2 T 120 2 T 140 2 T 160 2 T 180 2 T 200 2' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+            mask-size: 200px 4px;
+            mask-repeat: repeat-x;
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='4' viewBox='0 0 200 4'%3E%3Cpath d='M0 2 Q 10 0, 20 2 T 40 2 T 60 2 T 80 2 T 100 2 T 120 2 T 140 2 T 160 2 T 180 2 T 200 2' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+            -webkit-mask-size: 200px 4px;
+            -webkit-mask-repeat: repeat-x;
+        }
+
+        .site-logo {
+            font-family: var(--font-hand-display);
             font-weight: 700;
-            color: var(--primary);
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            font-size: 1.5rem;
+            color: var(--ink);
         }
 
-        .logo span {
-            color: var(--text-main);
+        .site-logo span {
+            color: var(--ink-faint);
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 5%;
+        .site-version {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--ink-faint);
+            /* slight hand-drawn rotation */
+            transform: rotate(-1deg);
         }
 
-        .intro {
+        /* ================================================================
+           HERO
+           ================================================================ */
+        .hero {
             text-align: center;
-            margin-bottom: 4rem;
+            padding-bottom: var(--sp-8);
         }
 
-        .intro h1 {
-            font-size: 3.5rem;
-            background: linear-gradient(to right, var(--text-main), var(--text-muted));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
+        .hero h1 {
+            margin-bottom: var(--sp-2);
+            /* Slight playful rotation */
+            transform: rotate(-0.5deg);
         }
 
-        .intro p {
-            color: var(--text-muted);
-            font-size: 1.2rem;
-            max-width: 600px;
+        /* Hand-drawn underline accent under title */
+        .hero-underline {
+            display: block;
+            width: 120px;
+            height: 4px;
+            margin: 0 auto var(--sp-3);
+            background: var(--chalk-blue);
+            border-radius: var(--radius-organic-1);
+            opacity: 0.7;
+            transform: rotate(-1deg);
+        }
+
+        .hero .tagline {
+            max-width: 500px;
             margin: 0 auto;
         }
 
+        /* ================================================================
+           ENDPOINT CARDS — Sketch / Chalk style
+           Two modes: .card--rough and .card--smooth
+           ================================================================ */
         .endpoint-card {
-            background: var(--surface);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            background: var(--chalk-white);
+            padding: var(--sp-5);
+            margin-bottom: var(--sp-5);
+            transition: transform var(--transition);
         }
 
         .endpoint-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            border-color: var(--primary);
+            transform: rotate(0.2deg) translateY(-2px);
         }
 
-        .endpoint-header {
+        /* ——— ROUGH TEXTURE MODE ——— */
+        .card--rough {
+            /* Irregular organic border-radius */
+            border-radius: var(--radius-organic-1);
+            /* Hand-drawn sketchy border */
+            border: 2.5px solid var(--pencil-medium);
+            /* Multiple offset shadows mimic pencil re-tracing */
+            box-shadow:
+                3px 3px 0 -1px var(--paper),
+                3.5px 3.5px 0 0 var(--pencil-faint),
+                -1px 2px 0 -1px var(--paper),
+                -1.5px 2.5px 0 0 rgba(122, 114, 105, 0.15);
+            /* SVG filter for sketchy distortion */
+            filter: url(#rough-filter);
+        }
+
+        /* ——— SMOOTH TEXTURE MODE ——— */
+        .card--smooth {
+            border-radius: var(--radius-soft);
+            border: 2px solid var(--pencil-faint);
+            box-shadow:
+                0 4px 16px rgba(45, 42, 38, 0.06),
+                0 1px 3px rgba(45, 42, 38, 0.04);
+            /* SVG filter for gentle smooth edges */
+            filter: url(#smooth-filter);
+        }
+
+        /* ——— Card accents: colored chalk stripe on left ——— */
+        .card--rough::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: -4px;
+            width: 6px;
+            height: 60%;
+            background: var(--chalk-blue);
+            border-radius: 3px;
+            opacity: 0.5;
+            transform: rotate(-0.5deg);
+        }
+
+        .card--smooth::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 0;
+            width: 4px;
+            height: 50%;
+            background: var(--chalk-lavender);
+            border-radius: 2px;
+            opacity: 0.4;
+        }
+
+        /* — Card meta — */
+        .endpoint-meta {
             display: flex;
             align-items: center;
-            margin-bottom: 1.5rem;
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-2);
             flex-wrap: wrap;
-            gap: 1rem;
         }
 
-        .method {
-            background: var(--primary);
-            color: white;
-            padding: 0.3rem 0.8rem;
+        .method-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--chalk-white);
+            background: var(--pencil-dark);
+            padding: 2px 10px;
+            border-radius: var(--radius-organic-2);
+            letter-spacing: 0.05em;
+            display: inline-block;
+            transform: rotate(-0.5deg);
+        }
+
+        .card--smooth .method-badge {
             border-radius: 6px;
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .url {
-            font-family: 'Courier New', monospace;
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
-
-        .description {
-            color: var(--text-muted);
-            margin-bottom: 2rem;
-        }
-
-        .try-it-section {
-            background: rgba(0, 0, 0, 0.2);
-            padding: 1.5rem;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .form-group {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .form-group {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        select,
-        input {
-            background: var(--secondary);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            width: 100%;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        select:focus,
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-            transition: background 0.3s, transform 0.2s;
-            width: 100%;
-        }
-
-        button:hover {
-            background: #ff3333;
-            transform: translateY(-2px);
-        }
-
-        button:disabled {
-            background: #555;
-            cursor: not-allowed;
             transform: none;
         }
 
-        .response-area {
-            background: #151515;
-            padding: 1rem;
+        .endpoint-url {
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            color: var(--ink-faint);
+        }
+
+        .endpoint-title {
+            margin-bottom: var(--sp-1);
+        }
+
+        .endpoint-description {
+            margin-bottom: var(--sp-4);
+        }
+
+        /* ================================================================
+           TRY-IT SECTION
+           ================================================================ */
+        .try-it {
+            padding-top: var(--sp-3);
+            position: relative;
+        }
+
+        /* Hand-drawn divider */
+        .try-it::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--pencil-faint);
+            opacity: 0.4;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='4' viewBox='0 0 300 4'%3E%3Cpath d='M0 2 Q 15 0, 30 2 T 60 2 T 90 2 T 120 2 T 150 2 T 180 2 T 210 2 T 240 2 T 270 2 T 300 2' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+            mask-size: 300px 4px;
+            mask-repeat: repeat-x;
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='4' viewBox='0 0 300 4'%3E%3Cpath d='M0 2 Q 15 0, 30 2 T 60 2 T 90 2 T 120 2 T 150 2 T 180 2 T 210 2 T 240 2 T 270 2 T 300 2' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+            -webkit-mask-size: 300px 4px;
+            -webkit-mask-repeat: repeat-x;
+        }
+
+        .try-it-label {
+            margin-bottom: var(--sp-3);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.75rem;
+            color: var(--ink-faint);
+            font-family: var(--font-hand-body);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-3);
+        }
+
+        /* ================================================================
+           FORM ELEMENTS — hand-drawn style
+           ================================================================ */
+        select,
+        input[type="text"] {
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            border: none;
+            border-bottom: var(--border-faint);
+            color: var(--ink);
+            font-family: var(--font-hand-body);
+            font-size: 1rem;
+            padding: var(--sp-1) 0;
+            width: 100%;
+            border-radius: 0;
+            transition: border-color var(--transition);
+            line-height: 1.6;
+        }
+
+        /* Rough card inputs: sketchy underline */
+        .card--rough select,
+        .card--rough input[type="text"] {
+            border-bottom: 2px solid var(--pencil-medium);
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='4' viewBox='0 0 200 4'%3E%3Cpath d='M0 2 Q 8 0, 16 2 T 32 2 T 48 2 T 64 2 T 80 2 T 96 2 T 112 2 T 128 2 T 144 2 T 160 2 T 176 2 T 192 2 L 200 2' fill='none' stroke='%237A7269' stroke-width='2'/%3E%3C/svg%3E") 0 0 2 0 / 0 0 2px 0 stretch;
+        }
+
+        /* Smooth card inputs: clean underline */
+        .card--smooth select,
+        .card--smooth input[type="text"] {
+            border-bottom: 1.5px solid var(--pencil-faint);
+        }
+
+        select:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-bottom-color: var(--chalk-blue);
+        }
+
+        input::placeholder {
+            color: var(--ink-faint);
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath d='M3 5 L7 9 L11 5' fill='none' stroke='%237A7269' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0 center;
+            padding-right: var(--sp-3);
+        }
+
+        select option {
+            font-family: var(--font-hand-body);
+            background: var(--paper);
+            color: var(--ink);
+        }
+
+        /* ================================================================
+           BUTTONS — hand-drawn, two styles
+           ================================================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-hand-body);
+            font-size: 1.0625rem;
+            color: var(--ink);
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+            transition:
+                background var(--transition),
+                transform var(--transition),
+                box-shadow var(--transition);
+            line-height: 1.6;
+            letter-spacing: 0.02em;
+            position: relative;
+        }
+
+        /* ——— Rough button: sketchy border, organic shape ——— */
+        .card--rough .btn {
+            border: 2.5px solid var(--pencil-dark);
+            border-radius: var(--radius-organic-3);
+            padding: var(--sp-1) var(--sp-3);
+            /* Slight pencil re-trace shadow */
+            box-shadow: 2px 2px 0 var(--pencil-faint);
+        }
+
+        .card--rough .btn:hover {
+            background: var(--chalk-yellow);
+            transform: rotate(-0.3deg) translateY(-1px);
+            box-shadow: 3px 3px 0 var(--pencil-faint);
+        }
+
+        .card--rough .btn:active {
+            transform: rotate(0.1deg) translateY(0);
+            box-shadow: 1px 1px 0 var(--pencil-faint);
+        }
+
+        /* ——— Smooth button: blended, soft border ——— */
+        .card--smooth .btn {
+            border: 1.5px solid var(--pencil-light);
             border-radius: 8px;
-            margin-top: 1rem;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: var(--success);
-            white-space: pre-wrap;
-            overflow-x: auto;
-            max-height: 300px;
+            padding: var(--sp-1) var(--sp-3);
+            box-shadow: 0 2px 8px rgba(45, 42, 38, 0.06);
+        }
+
+        .card--smooth .btn:hover {
+            background: rgba(168, 197, 218, 0.15);
+            border-color: var(--chalk-blue);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(45, 42, 38, 0.08);
+        }
+
+        .card--smooth .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 4px rgba(45, 42, 38, 0.06);
+        }
+
+        /* Disabled state (both modes) */
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: default;
+            transform: none !important;
+        }
+
+        .btn:disabled:hover {
+            background: transparent;
+            box-shadow: none;
+        }
+
+        /* ================================================================
+           RESPONSE AREA
+           ================================================================ */
+        .response-area {
             display: none;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: var(--sp-3);
+            padding: var(--sp-3);
+            background: var(--paper-warm);
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            line-height: 1.7;
+            color: var(--ink);
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-x: auto;
+            max-height: 360px;
+            overflow-y: auto;
         }
 
-        .response-area.error {
+        .card--rough .response-area {
+            border: 2px solid var(--pencil-faint);
+            border-radius: var(--radius-organic-2);
+        }
+
+        .card--smooth .response-area {
+            border: 1.5px solid rgba(200, 192, 180, 0.5);
+            border-radius: 8px;
+        }
+
+        .response-area.is-error {
             color: var(--error);
+            border-color: var(--error);
         }
 
-        footer {
+        /* ================================================================
+           TEXTURE MODE TOGGLE
+           ================================================================ */
+        .texture-toggle {
+            display: flex;
+            justify-content: center;
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-6);
+        }
+
+        .texture-toggle button {
+            font-family: var(--font-hand-body);
+            font-size: 0.9375rem;
+            padding: 6px 20px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--ink-secondary);
+            transition: all var(--transition);
+        }
+
+        .texture-toggle .toggle--rough {
+            border: 2px solid var(--pencil-medium);
+            border-radius: var(--radius-organic-1);
+        }
+
+        .texture-toggle .toggle--smooth {
+            border: 1.5px solid var(--pencil-faint);
+            border-radius: 8px;
+        }
+
+        .texture-toggle button.is-active {
+            background: var(--pencil-dark);
+            color: var(--chalk-white);
+        }
+
+        .texture-toggle button:hover:not(.is-active) {
+            background: rgba(122, 114, 105, 0.08);
+        }
+
+        /* ================================================================
+           CHALK SWATCHES — decorative palette strip
+           ================================================================ */
+        .chalk-swatches {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: var(--sp-6);
+            opacity: 0.6;
+        }
+
+        .chalk-swatch {
+            width: 28px;
+            height: 8px;
+            border-radius: 4px 2px 3px 5px;
+            transform: rotate(-2deg);
+        }
+
+        .chalk-swatch:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        /* ================================================================
+           FOOTER
+           ================================================================ */
+        .site-footer {
+            position: relative;
             text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 4rem;
+            padding: var(--sp-6) var(--sp-3) var(--sp-4);
+            margin-top: var(--sp-5);
+        }
+
+        .site-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: var(--pencil-faint);
+            opacity: 0.3;
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='4' viewBox='0 0 300 4'%3E%3Cpath d='M0 2 Q 15 0, 30 2 T 60 2 T 90 2 T 120 2 T 150 2 T 180 2 T 210 2 T 240 2 T 270 2 T 300 2' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+            mask-size: 300px 4px;
+            mask-repeat: repeat-x;
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='4' viewBox='0 0 300 4'%3E%3Cpath d='M0 2 Q 15 0, 30 2 T 60 2 T 90 2 T 120 2 T 150 2 T 180 2 T 210 2 T 240 2 T 270 2 T 300 2' fill='none' stroke='black' stroke-width='3'/%3E%3C/svg%3E");
+            -webkit-mask-size: 300px 4px;
+            -webkit-mask-repeat: repeat-x;
+        }
+
+        .site-footer p {
+            font-size: 0.9375rem;
+            color: var(--ink-faint);
+            font-family: var(--font-hand-body);
+        }
+
+        /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+        @media (max-width: 640px) {
+            .heading-display {
+                font-size: 2.5rem;
+            }
+
+            .heading-section {
+                font-size: 1.4rem;
+            }
+
+            .page-container {
+                padding: var(--sp-5) var(--sp-2);
+            }
+
+            .endpoint-card {
+                padding: var(--sp-3);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .site-header {
+                padding: var(--sp-2) var(--sp-2);
+            }
+
+            .site-header::after {
+                left: var(--sp-2);
+                right: var(--sp-2);
+            }
+
+            .hero {
+                padding-bottom: var(--sp-5);
+            }
+
+            .chalk-swatches {
+                gap: 6px;
+            }
+
+            .chalk-swatch {
+                width: 20px;
+                height: 6px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <header>
-        <div class="logo">TSun×Kittens <span>API</span></div>
-        <div>v3.0.6</div>
+    <!-- SVG filters for hand-drawn edge distortion (hidden) -->
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <!-- ROUGH: high turbulence for sketchy, jittery edges -->
+            <filter id="rough-filter" x="-5%" y="-5%" width="110%" height="110%">
+                <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="3" seed="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+            <!-- SMOOTH: gentle turbulence for soft, blended chalk edges -->
+            <filter id="smooth-filter" x="-2%" y="-2%" width="104%" height="104%">
+                <feTurbulence type="turbulence" baseFrequency="0.04" numOctaves="2" seed="5" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="1" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- ————————————————————————————————————————————
+         HEADER
+         ———————————————————————————————————————————— -->
+    <header class="site-header">
+        <div class="site-logo">TSun × Kittens <span>API</span></div>
+        <div class="site-version">v3.0.6</div>
     </header>
 
-    <div class="container">
-        <div class="intro">
-            <h1>Free Fire API Integration</h1>
-            <p>A powerful, unified API for fetching comprehensive player data and managing visit interactions.</p>
+    <!-- ————————————————————————————————————————————
+         MAIN CONTENT
+         ———————————————————————————————————————————— -->
+    <main class="page-container">
+
+        <!-- Hero -->
+        <section class="hero">
+            <h1 class="heading-display">Free Fire API</h1>
+            <span class="hero-underline" aria-hidden="true"></span>
+            <p class="tagline text-body">
+                A hand-crafted interface for player data retrieval and visit interactions.
+            </p>
+        </section>
+
+        <!-- Chalk palette strip (decorative) -->
+        <div class="chalk-swatches" aria-hidden="true">
+            <div class="chalk-swatch" style="background:var(--chalk-pink)"></div>
+            <div class="chalk-swatch" style="background:var(--chalk-blue)"></div>
+            <div class="chalk-swatch" style="background:var(--chalk-yellow)"></div>
+            <div class="chalk-swatch" style="background:var(--chalk-green)"></div>
+            <div class="chalk-swatch" style="background:var(--chalk-lavender)"></div>
+            <div class="chalk-swatch" style="background:var(--chalk-orange)"></div>
         </div>
 
-        <!-- Endpoint 1: Get Player Info -->
-        <div class="endpoint-card">
-            <div class="endpoint-header">
-                <span class="method">GET</span>
-                <span class="url">/info/{server}/{uid}</span>
-            </div>
-            <p class="description">Fetches detailed player profile information including basic stats, guild details,
-                pets, and social info.</p>
+        <!-- Texture mode toggle -->
+        <div class="texture-toggle" role="radiogroup" aria-label="Texture style">
+            <button class="toggle--rough is-active" onclick="setTexture('rough')" aria-pressed="true">Rough / Sketchy</button>
+            <button class="toggle--smooth" onclick="setTexture('smooth')" aria-pressed="false">Smooth / Blended</button>
+        </div>
 
-            <div class="try-it-section">
-                <div class="form-group">
+        <!-- Endpoint 1: Player Info (ROUGH by default) -->
+        <article class="endpoint-card card--rough" id="card-info">
+            <div class="endpoint-meta">
+                <span class="method-badge">GET</span>
+                <span class="endpoint-url">/info/{server}/{uid}</span>
+            </div>
+            <h2 class="heading-section endpoint-title">Player Information</h2>
+            <p class="text-body endpoint-description">
+                Retrieve comprehensive player profile data — account stats, guild details, equipped items, and social info.
+            </p>
+
+            <div class="try-it">
+                <p class="try-it-label">Try it</p>
+                <div class="form-row">
                     <select id="info-server">
-                        <option value="PK" selected>PK (Pakistan)</option>
-                        <option value="IND">IND (India)</option>
-                        <option value="BD">BD (Bangladesh)</option>
-                        <option value="ME">ME (Middle East)</option>
-                        <option value="NA">NA (North America)</option>
-                        <option value="BR">BR (Brazil)</option>
-                        <option value="US">US (United States)</option>
-                        <option value="SAC">SAC (South America)</option>
-                        <option value="sg">SG (Singapore)</option>
-                        <option value="ru">RU (Russia)</option>
-                        <option value="id">ID (Indonesia)</option>
-                        <option value="tw">TW (Taiwan)</option>
-                        <option value="th">TH (Thailand)</option>
-                        <option value="eu">EU (Europe)</option>
-                        <option value="vn">VN (Vietnam)</option>
+                        <option value="PK" selected>PK — Pakistan</option>
+                        <option value="IND">IND — India</option>
+                        <option value="BD">BD — Bangladesh</option>
+                        <option value="ME">ME — Middle East</option>
+                        <option value="NA">NA — North America</option>
+                        <option value="BR">BR — Brazil</option>
+                        <option value="US">US — United States</option>
+                        <option value="SAC">SAC — South America</option>
+                        <option value="sg">SG — Singapore</option>
+                        <option value="ru">RU — Russia</option>
+                        <option value="id">ID — Indonesia</option>
+                        <option value="tw">TW — Taiwan</option>
+                        <option value="th">TH — Thailand</option>
+                        <option value="eu">EU — Europe</option>
+                        <option value="vn">VN — Vietnam</option>
                     </select>
-                    <input type="text" id="info-uid" placeholder="Enter Player UID (e.g., 2513698016)">
+                    <input type="text" id="info-uid" placeholder="Player UID, e.g. 2513698016">
                 </div>
-                <button onclick="fetchInfo()" id="btn-info">Fetch Player Info</button>
+                <button class="btn" onclick="fetchInfo()" id="btn-info">Fetch Player Info</button>
                 <div id="res-info" class="response-area"></div>
             </div>
-        </div>
+        </article>
 
-        <!-- Endpoint 2: Send Visits (Spam) -->
-        <div class="endpoint-card">
-            <div class="endpoint-header">
-                <span class="method">GET</span>
-                <span class="url">/visit/{server}/{uid}</span>
+        <!-- Endpoint 2: Send Visits (ROUGH by default) -->
+        <article class="endpoint-card card--rough" id="card-visit">
+            <div class="endpoint-meta">
+                <span class="method-badge">GET</span>
+                <span class="endpoint-url">/visit/{server}/{uid}</span>
             </div>
-            <p class="description">Triggers a 5x batch process to send visits (likes) to the specified player. Process
-                runs in the background.</p>
+            <h2 class="heading-section endpoint-title">Send Visits</h2>
+            <p class="text-body endpoint-description">
+                Trigger a 5× batch process to send profile visits. The process runs asynchronously in the background.
+            </p>
 
-            <div class="try-it-section">
-                <div class="form-group">
+            <div class="try-it">
+                <p class="try-it-label">Try it</p>
+                <div class="form-row">
                     <select id="visit-server">
-                        <option value="PK" selected>PK (Pakistan)</option>
-                        <option value="IND">IND (India)</option>
-                        <option value="BD">BD (Bangladesh)</option>
-                        <option value="ME">ME (Middle East)</option>
-                        <option value="NA">NA (North America)</option>
-                        <option value="BR">BR (Brazil)</option>
-                        <option value="US">US (United States)</option>
-                        <option value="SAC">SAC (South America)</option>
-                        <option value="sg">SG (Singapore)</option>
-                        <option value="ru">RU (Russia)</option>
-                        <option value="id">ID (Indonesia)</option>
-                        <option value="tw">TW (Taiwan)</option>
-                        <option value="th">TH (Thailand)</option>
-                        <option value="eu">EU (Europe)</option>
-                        <option value="vn">VN (Vietnam)</option>
+                        <option value="PK" selected>PK — Pakistan</option>
+                        <option value="IND">IND — India</option>
+                        <option value="BD">BD — Bangladesh</option>
+                        <option value="ME">ME — Middle East</option>
+                        <option value="NA">NA — North America</option>
+                        <option value="BR">BR — Brazil</option>
+                        <option value="US">US — United States</option>
+                        <option value="SAC">SAC — South America</option>
+                        <option value="sg">SG — Singapore</option>
+                        <option value="ru">RU — Russia</option>
+                        <option value="id">ID — Indonesia</option>
+                        <option value="tw">TW — Taiwan</option>
+                        <option value="th">TH — Thailand</option>
+                        <option value="eu">EU — Europe</option>
+                        <option value="vn">VN — Vietnam</option>
                     </select>
-                    <input type="text" id="visit-uid" placeholder="Enter Player UID (e.g., 2513698016)">
+                    <input type="text" id="visit-uid" placeholder="Player UID, e.g. 2513698016">
                 </div>
-                <button onclick="sendVisits()" id="btn-visit">Send Visits</button>
+                <button class="btn" onclick="sendVisits()" id="btn-visit">Send Visits</button>
                 <div id="res-visit" class="response-area"></div>
             </div>
-        </div>
-    </div>
+        </article>
 
-    <footer>
-        &copy; 2026 TSun × Kittens API. All rights reserved.
+    </main>
+
+    <!-- ————————————————————————————————————————————
+         FOOTER
+         ———————————————————————————————————————————— -->
+    <footer class="site-footer">
+        <p>&copy; 2026 TSun × Kittens API</p>
     </footer>
 
+    <!-- ————————————————————————————————————————————
+         SCRIPTS
+         ———————————————————————————————————————————— -->
     <script>
+        /* ============================================================
+           Texture mode toggle: switches both cards between
+           rough (sketchy) and smooth (blended) styles
+           ============================================================ */
+        function setTexture(mode) {
+            var cards = document.querySelectorAll('.endpoint-card');
+            var roughBtn = document.querySelector('.toggle--rough');
+            var smoothBtn = document.querySelector('.toggle--smooth');
+
+            cards.forEach(function (card) {
+                card.classList.remove('card--rough', 'card--smooth');
+                card.classList.add(mode === 'rough' ? 'card--rough' : 'card--smooth');
+            });
+
+            if (mode === 'rough') {
+                roughBtn.classList.add('is-active');
+                roughBtn.setAttribute('aria-pressed', 'true');
+                smoothBtn.classList.remove('is-active');
+                smoothBtn.setAttribute('aria-pressed', 'false');
+            } else {
+                smoothBtn.classList.add('is-active');
+                smoothBtn.setAttribute('aria-pressed', 'true');
+                roughBtn.classList.remove('is-active');
+                roughBtn.setAttribute('aria-pressed', 'false');
+            }
+        }
+
+        /* ============================================================
+           API Request Handler
+           ============================================================ */
         async function makeRequest(url, btnId, resId) {
-            const btn = document.getElementById(btnId);
-            const resArea = document.getElementById(resId);
+            var btn = document.getElementById(btnId);
+            var resArea = document.getElementById(resId);
+            var originalLabel = btn.innerText;
 
             btn.disabled = true;
-            btn.innerText = "Processing...";
+            btn.innerText = 'Working\u2026';
             resArea.style.display = 'none';
-            resArea.className = 'response-area'; // Reset class
+            resArea.className = 'response-area';
             resArea.innerText = '';
 
             try {
-                const response = await fetch(url);
-                const data = await response.json();
+                var response = await fetch(url);
+                var data = await response.json();
 
                 resArea.style.display = 'block';
                 resArea.innerText = JSON.stringify(data, null, 4);
 
                 if (!response.ok) {
-                    resArea.classList.add('error');
+                    resArea.classList.add('is-error');
                 }
             } catch (error) {
                 resArea.style.display = 'block';
-                resArea.classList.add('error');
-                resArea.innerText = "Error: " + error.message;
+                resArea.classList.add('is-error');
+                resArea.innerText = 'Error: ' + error.message;
             } finally {
                 btn.disabled = false;
-                btn.innerText = btnId === 'btn-info' ? "Fetch Player Info" : "Send Visits";
+                btn.innerText = originalLabel;
             }
         }
 
         function fetchInfo() {
-            const server = document.getElementById('info-server').value;
-            const uid = document.getElementById('info-uid').value;
-            if (!uid) return alert("Please enter a UID");
-
-            makeRequest(`/info/${server}/${uid}`, 'btn-info', 'res-info');
+            var server = document.getElementById('info-server').value;
+            var uid = document.getElementById('info-uid').value.trim();
+            if (!uid) { alert('Please enter a UID'); return; }
+            makeRequest('/info/' + server + '/' + uid, 'btn-info', 'res-info');
         }
 
         function sendVisits() {
-            const server = document.getElementById('visit-server').value;
-            const uid = document.getElementById('visit-uid').value;
-            if (!uid) return alert("Please enter a UID");
-
-            makeRequest(`/visit/${server}/${uid}`, 'btn-visit', 'res-visit');
+            var server = document.getElementById('visit-server').value;
+            var uid = document.getElementById('visit-uid').value.trim();
+            if (!uid) { alert('Please enter a UID'); return; }
+            makeRequest('/visit/' + server + '/' + uid, 'btn-visit', 'res-visit');
         }
     </script>
 

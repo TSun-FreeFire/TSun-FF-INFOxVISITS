@@ -16,6 +16,8 @@ except ImportError:
     logging.error("Could not import proto files. Ensure the 'proto' directory exists.")
     sys.exit(1)
 
+AccountPersonalShowInfo = getattr(AccountPersonalShow_pb2, "AccountPersonalShowInfo")
+
 app = Flask(__name__)
 
 @app.route('/')
@@ -79,7 +81,7 @@ def get_url(server_name):
 def parse_basic_protobuf_response(response_data):
     # This is the lighter parsing used during mass visits
     try:
-        info = AccountPersonalShow_pb2.AccountPersonalShowInfo()
+        info = AccountPersonalShowInfo()
         info.ParseFromString(response_data)
         basic_info = info.basic_info
         
@@ -97,7 +99,7 @@ def parse_basic_protobuf_response(response_data):
 
 async def visit(session, url, token, uid, data):
     headers = {
-        "ReleaseVersion": "OB52",
+        "ReleaseVersion": "OB53",
         "X-GA": "v1 1",
         "Authorization": f"Bearer {token}",
         "Host": url.replace("https://", "").split("/")[0]
@@ -125,7 +127,10 @@ async def send_visits_in_batches(tokens, uid, server_name):
     async with aiohttp.ClientSession(connector=connector) as session:
         # Generate encrypted payload for the visit
         try:
-           encrypted = encrypt_api("08" + Encrypt_ID(str(uid)) + "1801")
+           encrypted_id = Encrypt_ID(str(uid))
+           if encrypted_id is None:
+               raise ValueError("Unable to encrypt UID")
+           encrypted = encrypt_api(f"08{encrypted_id}1801")
            data = bytes.fromhex(encrypted)
         except Exception:
            return 0, 0, None # Fail gracefully if encryption fails
@@ -212,7 +217,10 @@ async def fetch_player_data(uid, server, tokens=None):
     # Payload matches app.py logic
     # We continue to use the byte.py encryption for request generation as it works
     try:
-        encrypted = encrypt_api("08" + Encrypt_ID(str(uid)) + "1801")
+        encrypted_id = Encrypt_ID(str(uid))
+        if encrypted_id is None:
+            raise ValueError("Unable to encrypt UID")
+        encrypted = encrypt_api(f"08{encrypted_id}1801")
     except Exception as e:
         logger.error(f"Failed to encrypt UID {uid}: {e}")
         return None
@@ -225,7 +233,7 @@ async def fetch_player_data(uid, server, tokens=None):
     
     for i, token in enumerate(tokens_to_try):
         headers = {
-            "ReleaseVersion": "OB52",
+            "ReleaseVersion": "OB53",
             "X-GA": "v1 1",
             "Authorization": f"Bearer {token}",
             "Host": url.replace("https://", "").split("/")[0],
@@ -256,7 +264,7 @@ async def fetch_player_data(uid, server, tokens=None):
 def process_data_with_schema(binary_data, region):
     try:
         # Step A: Convert bytes to Protobuf Object using the schema
-        proto_obj = AccountPersonalShow_pb2.AccountPersonalShowInfo()
+        proto_obj = AccountPersonalShowInfo()
         proto_obj.ParseFromString(binary_data)
 
         # Step B: Convert Protobuf Object to JSON string

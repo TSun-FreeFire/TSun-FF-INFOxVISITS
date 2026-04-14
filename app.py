@@ -18,7 +18,7 @@ except ImportError:
 
 AccountPersonalShowInfo = getattr(AccountPersonalShow_pb2, "AccountPersonalShowInfo")
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 
 @app.route('/')
 def home():

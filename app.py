@@ -70,13 +70,13 @@ async def load_tokens(server_name):
 
 def get_url(server_name):
     if server_name == "PK":
-        return "https://clientbp.ggblueshark.com/GetPlayerPersonalShow"
+        return "https://clientbp.ggpolarbear.com/GetPlayerPersonalShow"
     elif server_name == "IND":
         return "https://client.ind.freefiremobile.com/GetPlayerPersonalShow"
     elif server_name in {"BR", "US", "SAC", "NA"}:
         return "https://client.us.freefiremobile.com/GetPlayerPersonalShow"
     else:
-        return "https://clientbp.ggblueshark.com/GetPlayerPersonalShow"
+        return "https://clientbp.ggpolarbear.com/GetPlayerPersonalShow"
 
 def parse_basic_protobuf_response(response_data):
     # This is the lighter parsing used during mass visits

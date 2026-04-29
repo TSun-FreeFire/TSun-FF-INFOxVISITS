@@ -1,22 +1,19 @@
-# Use an official lightweight Python image
 FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+	PYTHONUNBUFFERED=1 \
+	PORT=5000 \
+	GUNICORN_WORKERS=2 \
+	GUNICORN_THREADS=8 \
+	GUNICORN_TIMEOUT=120
 
-# Set work directory
 WORKDIR /app
 
-# Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your app code
-COPY app.py .
+COPY . .
 
-# Expose port
 EXPOSE 5000
 
-# Start the Flask app
-CMD ["python", "app.py"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT} --worker-class gthread --workers ${GUNICORN_WORKERS} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --access-logfile - --error-logfile - app:app"]

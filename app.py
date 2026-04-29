@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import sys
+import time
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template
 
@@ -19,10 +20,16 @@ except ImportError:
 AccountPersonalShowInfo = getattr(AccountPersonalShow_pb2, "AccountPersonalShowInfo")
 
 app = Flask(__name__, static_folder="assets", static_url_path="/assets")
+APP_START_TIME = time.monotonic()
 
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    uptime_seconds = round(time.monotonic() - APP_START_TIME, 3)
+    return jsonify({"status": "ok", "uptime_seconds": uptime_seconds}), 200
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

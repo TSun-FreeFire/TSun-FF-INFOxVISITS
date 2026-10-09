@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TSun FF-INTEL</title>
+    <link rel="icon" type="image/png" href="/assets/TSun.png">
+    <link rel="apple-touch-icon" href="/assets/TSun.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
@@ -178,7 +180,7 @@
         <div>
             <div class="flex items-center gap-3 mb-2">
                 <span class="px-2 py-0.5 bg-red-600 text-[10px] font-bold tracking-widest text-black mono">LIVE_SESSION</span>
-                <span class="text-xs text-white/40 mono tracking-tighter">PROTO_ID: 0xBEAF90</span>
+                <span class="text-xs text-white/40 mono tracking-tighter">PROTO_ID: 0xVEAR54</span>
             </div>
             <h1 class="text-6xl md:text-8xl bebas tracking-tighter leading-none text-white italic glitch-text">
                 TSun <span class="text-red-600">Studio</span>
@@ -255,6 +257,7 @@
                     <div>
                         <label class="block mono text-[10px] text-white/40 mb-1 uppercase tracking-widest">Visit Region</label>
                         <select id="visitRegion" class="w-full tactical-input p-3 mono text-sm uppercase tracking-widest">
+                            <option value="" selected disabled>SELECT REGION</option>
                             <option value="BD">BD</option>
                             <option value="IND">IND</option>
                             <option value="ME">ME</option>
@@ -265,7 +268,7 @@
                             <option value="SAC">SAC</option>
                         </select>
                     </div>
-                    <button id="visitBtn" type="submit" class="w-full py-3 border border-cyan-500/30 text-cyan-500 bebas text-xl hover:bg-cyan-500/10 transition-all">
+                    <button id="visitBtn" type="submit" disabled class="w-full py-3 border border-cyan-500/30 text-cyan-500 bebas text-xl hover:bg-cyan-500/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent">
                         SEND VISITS
                     </button>
                 </form>
@@ -416,7 +419,7 @@
 
     <footer class="w-full max-w-6xl mt-auto pt-12 pb-8 flex flex-col md:flex-row justify-between items-center opacity-30 gap-4">
         <div class="mono text-[10px] tracking-widest uppercase text-white/60">
-            © 2026 TSUN-LABS // NEURAL_EXTRACTOR_V4
+            © 2026 TSUN-LABS // NEURAL_EXTRACTOR_V5.4.1
         </div>
         <div class="flex gap-6 mono text-[10px]">
             <button onclick="openModal('manifesto')" class="hover:text-red-600 transition-colors">SECURITY_MANIFESTO</button>
@@ -552,6 +555,11 @@
         const visitResponsePanel = document.getElementById('visitResponsePanel');
         let lastAvatarId = null;
 
+        // Enable SEND VISITS only after a Visit Region is selected
+        const syncVisitBtn = () => { visitBtn.disabled = !visitRegion.value; };
+        visitRegion.addEventListener('change', syncVisitBtn);
+        syncVisitBtn();
+
         // Modal Logic
         const modalContainer = document.getElementById('modalContainer');
         const modals = {
@@ -644,6 +652,9 @@
         };
 
         const renderVisitResponse = (data, isError = false) => {
+            welcomeScreen.classList.add('hidden');
+            loader.classList.add('hidden');
+            resultPanel.classList.remove('hidden');
             infoResponsePanel.classList.add('hidden');
             infoStatsGrid.classList.add('hidden');
             infoDetailsGrid.classList.add('hidden');
@@ -735,12 +746,16 @@
             e.preventDefault();
             const uid = visitUid.value.trim();
             if(!uid) return notify('TARGET_UID_REQUIRED', 'error');
+            if(!visitRegion.value) return notify('VISIT_REGION_REQUIRED', 'error');
 
             const server = mapVisitServer(visitRegion.value);
 
             visitBtn.disabled = true;
             visitBtn.innerText = 'EXECUTING_STRIKE...';
-            
+            welcomeScreen.classList.add('hidden');
+            resultPanel.classList.add('hidden');
+            loader.classList.remove('hidden');
+
             try {
                 const response = await fetch(`/visit/${encodeURIComponent(server)}/${encodeURIComponent(uid)}`);
                 const data = await response.json();
@@ -750,8 +765,8 @@
                 renderVisitResponse({ error: err.message, message: 'PACKET LOSS DETECTED' }, true);
                 notify('PACKET_LOSS_DETECTED', 'error');
             } finally {
-                visitBtn.disabled = false;
                 visitBtn.innerText = 'INITIATE VISIT_STRIKE';
+                syncVisitBtn();
             }
         };
     </script>

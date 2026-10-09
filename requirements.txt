@@ -1,5 +1,5 @@
 flask
-aiohttp
 pycryptodome
 protobuf
 gunicorn
+gevent

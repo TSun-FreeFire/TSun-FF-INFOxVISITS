@@ -1,2 +1,4 @@
 firebase-debug.log
 .claude/
+proto\__pycache__
+__pycache__/

@@ -12,6 +12,7 @@ import ssl
 import sys
 import time
 import urllib.request
+from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from flask import Flask, jsonify, render_template
 
@@ -29,41 +30,28 @@ except ImportError:
 
 AccountPersonalShowInfo = getattr(AccountPersonalShow_pb2, "AccountPersonalShowInfo")
 
-# --- Remote configuration (fetched from gist) ---
-CONFIG_URL = "https://gist.githubusercontent.com/SaeedX302/b8277fdd6a2e71b599a39299f3ab3545/raw/config.json"
-CONFIG_TIMEOUT = 15  # seconds — fail fast instead of waiting 300s
+# --- Local configuration ---
+LOCAL_CONFIG_FILE = Path(__file__).resolve().parent / "config.json"
 
-# Module-level cache so we don't hammer the gist on every request
-_cached_config = None
-_config_cache_time = 0
-_CONFIG_CACHE_TTL = 60  # seconds
+class ConfigurationError(RuntimeError):
+    """Raised when the local configuration cannot be loaded or validated."""
 
-def fetch_config():
-    """Fetch config.json from the remote gist (synchronous, gevent-friendly)."""
-    req = urllib.request.Request(CONFIG_URL, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=CONFIG_TIMEOUT) as resp:
-        return json.loads(resp.read().decode())
 
 def fetch_config_sync():
-    """Synchronous wrapper for use inside Flask route handlers.
-
-    Tries the remote gist first, then falls back to a recent cached config.
-    Raises if the gist is unreachable and no usable cache exists.
-    """
-    global _cached_config, _config_cache_time
+    """Load and validate the project-local config.json."""
     try:
-        config = fetch_config()
-        _cached_config = config
-        _config_cache_time = time.monotonic()
-        return config
-    except Exception as e:
-        logger.warning(f"⚠️ fetch_config failed: {e}")
-        if _cached_config is not None:
-            age = time.monotonic() - _config_cache_time
-            if age < _CONFIG_CACHE_TTL * 10:  # allow stale cache for up to 10x TTL
-                logger.info(f"Using cached config (age={age:.1f}s)")
-                return _cached_config
-        raise
+        with LOCAL_CONFIG_FILE.open("r", encoding="utf-8") as config_file:
+            config = json.load(config_file)
+    except FileNotFoundError as exc:
+        raise ConfigurationError("Local config.json was not found") from exc
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ConfigurationError("Local config.json is unreadable or invalid") from exc
+
+    if not isinstance(config, dict):
+        raise ConfigurationError("Local config.json must contain a JSON object")
+    if not isinstance(config.get("client_url", {}), dict):
+        raise ConfigurationError("Local config.json client_url must be an object")
+    return config
 
 app = Flask(__name__, static_folder="assets", static_url_path="/assets")
 APP_START_TIME = time.monotonic()
@@ -79,11 +67,11 @@ def health_check():
 
 @app.route('/config', methods=['GET'])
 def config_info():
-    """Expose public-facing config values fetched live from the gist."""
+    """Expose public-facing values from the local config.json."""
     try:
         config = fetch_config_sync()
-    except Exception as e:
-        return jsonify({"error": "Config service unavailable", "detail": str(e)}), 503
+    except ConfigurationError as exc:
+        return jsonify({"error": "Local configuration unavailable", "detail": str(exc)}), 503
     return jsonify({
         "version": config.get("version"),
         "release_version": config.get("RELEASEVERSION"),
@@ -152,7 +140,7 @@ def _load_local_tokens(server_name):
         return []
 
 def get_url(server_name, config):
-    # Base client URLs come from the remote config -> client_url
+    # Base client URLs come from the local config -> client_url
     client_url = config.get("client_url", {})
     if server_name == "IND":
         base = client_url.get("ind", "https://client.ind.freefiremobile.com/")
@@ -299,18 +287,7 @@ def format_timestamps_in_dict(data_dict, region):
 
 def fetch_player_data(uid, server, tokens=None, config=None):
     if config is None:
-        try:
-            config = fetch_config()
-            global _cached_config, _config_cache_time
-            _cached_config = config
-            _config_cache_time = time.monotonic()
-        except Exception as e:
-            logger.warning(f"Config fetch failed: {e}")
-            if _cached_config is not None:
-                logger.info("Using cached config as fallback")
-                config = _cached_config
-            else:
-                raise
+        config = fetch_config_sync()
     url = get_url(server, config)
     release_version = config.get("RELEASEVERSION", "OB54")
     if not tokens:
@@ -512,8 +489,11 @@ def send_visits_endpoint(server, uid):
     token_count = len(tokens)
     projected_success = token_count * 5
 
-    # Fetch the remote config once for this request (used by pre-fetch + background visits)
-    config = fetch_config_sync()
+    # Load the local config once for this request (used by pre-fetch + background visits)
+    try:
+        config = fetch_config_sync()
+    except ConfigurationError as exc:
+        return jsonify({"error": "Local configuration unavailable", "detail": str(exc)}), 503
 
     # Fetch player info BEFORE starting visits to provide better UX
     # Default values in case fetch fails

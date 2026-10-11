@@ -1,0 +1,11 @@
+{
+  "version": "1.132.1",
+  "RELEASEVERSION": "OB55",
+  "next_update": "",
+  "owner": "TSun-FreeFire",
+  "client_url": {
+    "ind": "https://client.ind.freefiremobile.com/",
+    "us": "https://client.us.freefiremobile.com/",
+    "global": "https://clientbp.ppmainecoonghj.com/"
+  }
+}

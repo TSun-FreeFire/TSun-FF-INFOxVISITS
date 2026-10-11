@@ -43,7 +43,7 @@
 
   <main class="desk" id="desk">
     <div class="page desk-inner">
-      <div class="section-head"><div><div class="panel-kicker">01 / the working desk</div><h2>TSun Jwt Fetcher</h2></div><p>Two tools, one readable surface. Lookup is region-aware; visits require a numeric UID to match the backend contract.</p></div>
+      <div class="section-head"><div><div class="panel-kicker">01 / the working desk</div><h2>TSun FF Info Desk</h2></div><p>Two tools, one readable surface. Lookup is region-aware; visits require a numeric UID to match the backend contract.</p></div>
       <div class="grid">
         <div>
           <section class="panel panel-pad" data-od-id="lookup-panel"><div class="panel-kicker">Profile intelligence</div><h3>Find a player</h3><p>Auto-detect the region or pin a shard when you already know the account's home server.</p><form id="searchForm"><div class="field"><label for="playerUid">Player UID</label><input id="playerUid" name="playerUid" type="text" inputmode="numeric" autocomplete="off" placeholder="e.g. 123456789" required></div><div class="field"><label for="serverRegion">Server / region</label><select id="serverRegion"><option value="AUTO">Auto-detect</option><option value="BD">BD</option><option value="IND">IND</option><option value="ME">ME</option><option value="NA">NA</option><option value="PK">PK</option><option value="BR">BR</option><option value="US">US</option><option value="SAC">SAC</option></select></div><button class="action" type="submit" data-od-id="lookup-submit">Start lookup</button><span class="hint">Routes: GET /info/{uid} or GET /info/{server}/{uid}</span></form></section>

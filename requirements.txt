@@ -3,3 +3,4 @@ pycryptodome
 protobuf
 gunicorn
 gevent
+packaging
